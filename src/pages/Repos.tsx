@@ -2,32 +2,38 @@ import axios from "axios";
 import { useQuery } from "react-query";
 import { Repository } from "../types/Repository";
 import { Link } from "react-router-dom";
+import { AddRepo } from "../components/AddRepo";
 
 export function Repos() {
+  const getRepositories = async (url: string) => {
+    const response = await axios.get(url);
+    return response.data;
+  };
+
   const { data, isFetching } = useQuery<Repository[]>(
-    "repos",
-    async () => {
-      const response = await axios.get(
-        "https://api.github.com/users/setoue/repos"
-      );
-      return response.data;
-    },
+    "repositories",
+    async () => getRepositories("http://localhost:3030/repositories"),
     {
-      staleTime: 1000 * 60,
+      // refetchOnWindowFocus: false,
+      // staleTime: 1000,
     }
   );
 
   return (
-    <ul>
-      {isFetching && <p>Carregando...</p>}
-      {data?.map((repository) => (
-        <li key={repository.full_name}>
-          <Link to={`repo/${repository.full_name}`}>
-            {repository.full_name}
-          </Link>
-          <p>{repository.description}</p>
-        </li>
-      ))}
-    </ul>
+    <div className="flex">
+      <ul>
+        {!isFetching ? (
+          data?.map((repository) => (
+            <li key={repository.name}>
+              <Link to={`repo/${repository.name}`}>{repository.name}</Link>
+              <p>{repository.description}</p>
+            </li>
+          ))
+        ) : (
+          <p>Carregando...</p>
+        )}
+      </ul>
+      <AddRepo />
+    </div>
   );
 }
